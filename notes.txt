@@ -3,3 +3,7 @@ Things to test:
 * Don't specify a command
 * Specify an unknown command
 * Don't provide all required fields
+
+Dependencies:
+* vlc
+* vlc.py

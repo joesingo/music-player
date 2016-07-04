@@ -2,8 +2,9 @@ import socket
 import json
 import sys
 
-from commands import (COMMAND_INDEX, MusicPlayerException, UnknownCommandException,
+from commands import (COMMANDS, MusicPlayerException, UnknownCommandException,
                       NoCommandSpecifiedException, InvalidJSONException)
+from music_player import MusicPlayer
 
 class Server(object):
 
@@ -16,6 +17,8 @@ class Server(object):
         self.port = port
         self.socket = socket.socket()
         self.socket.bind((self.hostname, self.port))
+
+        self.player = MusicPlayer()
 
     def start(self):
         """Start accepting connections"""
@@ -54,13 +57,13 @@ class Server(object):
         if "command" not in data:
             raise NoCommandSpecifiedException("No command specified")
 
+        # Try to get the actual function for the command
         try:
-            # Get the class for the command to be run, and run it
-            command = COMMAND_INDEX[data["command"]]
-            command.run(data)
+            command = COMMANDS[data["command"]]
         except KeyError:
             raise UnknownCommandException("No such command '{}'".format(data["command"]))
 
+        command(data, self.player)
 
 if __name__ == "__main__":
     hostname = "localhost"
