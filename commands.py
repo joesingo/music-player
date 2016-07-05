@@ -25,25 +25,26 @@ class requires(object):
 
         return wrapper
 
-@requires("song")
+# Required fields common to multiple commands
+SONG_REQUIRED_FIELDS = ["song", "album", "artist"]
+
+
+@requires(*SONG_REQUIRED_FIELDS)
 def play_command(data, player):
-        player.play_song(data["song"])
-        print("Playing {}".format(data["song"]))
+        player.play_song(data["song"], data["album"], data["artist"])
+        print("Playing {} by {}".format(data["song"], data["artist"]))
+
 
 def toggle_pause_command(data, player):
     player.toggle_pause()
 
+
 def stop_command(data, player):
     player.stop()
-
-@requires("foo", "bar")
-def test_command(data, player):
-    print("foo, bar = {}, {}".format(data["foo"], data["bar"]))
 
 
 COMMANDS = {
     "play": play_command,
     "toggle-pause": toggle_pause_command,
-    "stop": stop_command,
-    "test": test_command,
+    "stop": stop_command
 }

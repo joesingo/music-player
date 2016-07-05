@@ -13,13 +13,15 @@ class States(Enum):
 
 class MusicPlayer(object):
 
-    def __init__(self):
+    def __init__(self, music_directory):
         """Initialise pygame mixer and set attributes"""
         mixer.init()
         self.state = States.stopped
+        self.music_directory = music_directory
 
-    def play_song(self, filename):
+    def play_song(self, song, album, artist):
         """Play the specified song"""
+        filename = self.get_song_filename(song, album, artist)
         try:
             song = mixer.music.load(filename)
         except pygame.error:
@@ -44,4 +46,8 @@ class MusicPlayer(object):
         if self.state != States.stopped:
             mixer.music.stop()
             self.state = States.stopped
+
+    def get_song_filename(self, song, album, artist):
+        """Return the filename for a given song"""
+        return "{}/{}/{}/{}".format(self.music_directory, artist, album, song)
 
