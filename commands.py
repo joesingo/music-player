@@ -1,19 +1,4 @@
-class MusicPlayerException(Exception):
-    """Base class for other custom exceptions"""
-
-class InvalidJSONException(MusicPlayerException):
-    """The provided JSON is invalid"""
-
-class InvalidCommandException(MusicPlayerException):
-    """Some required fields are missing"""
-
-
-class UnknownCommandException(MusicPlayerException):
-    """The command is unknown"""
-
-
-class NoCommandSpecifiedException(MusicPlayerException):
-    """No command was specified in the request"""
+from exceptions import InvalidCommandException
 
 
 class requires(object):
@@ -48,6 +33,9 @@ def play_command(data, player):
 def toggle_pause_command(data, player):
     player.toggle_pause()
 
+def stop_command(data, player):
+    player.stop()
+
 @requires("foo", "bar")
 def test_command(data, player):
     print("foo, bar = {}, {}".format(data["foo"], data["bar"]))
@@ -56,5 +44,6 @@ def test_command(data, player):
 COMMANDS = {
     "play": play_command,
     "toggle-pause": toggle_pause_command,
-    "test": test_command
+    "stop": stop_command,
+    "test": test_command,
 }

@@ -2,9 +2,11 @@ import socket
 import json
 import sys
 
-from commands import (COMMANDS, MusicPlayerException, UnknownCommandException,
-                      NoCommandSpecifiedException, InvalidJSONException)
+from commands import COMMANDS
+from exceptions import (MusicPlayerException, UnknownCommandException, NoCommandSpecifiedException,
+                        InvalidJSONException)
 from music_player import MusicPlayer
+
 
 class Server(object):
 
@@ -28,18 +30,20 @@ class Server(object):
         while True:
             conn, addr = self.socket.accept()
 
+            reply = {
+                "status": "",
+                "message": ""
+            }
             try:
                 self.handle_request(conn, addr)
+                # If above line went without raising an exception then everything has gone fine
+                reply["status"] = "okay"
 
             except MusicPlayerException as e:
-                # If an exception occured handling the request, send back a JSON object detailing
-                # what went wrong
-                reply_dict = {
-                    "status": "error",
-                    "message": e.args[0]
-                }
-                reply = json.dumps(reply_dict)
-                conn.sendall(reply.encode(Server.ENCODING))
+                reply["status"] = "error"
+                reply["message"] = e.args[0]
+
+            conn.sendall(json.dumps(reply).encode(Server.ENCODING))
 
     def handle_request(self, conn, address):
         """Handle a request"""
@@ -66,7 +70,7 @@ class Server(object):
         command(data, self.player)
 
 if __name__ == "__main__":
-    hostname = "localhost"
+    hostname = "0.0.0.0"
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 9090
 
     s = Server(hostname, port)

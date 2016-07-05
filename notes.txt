@@ -4,6 +4,10 @@ Things to test:
 * Specify an unknown command
 * Don't provide all required fields
 
+* Play command:
+    * Provide invalid path to song
+    * Provide path to non-song file
+
 Dependencies:
 * pygame >= 1.9.2 (not in ubuntu repos - must compile)
 * libsdl-mixer1.2-dev
