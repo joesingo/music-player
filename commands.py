@@ -15,6 +15,7 @@ class UnknownCommandException(MusicPlayerException):
 class NoCommandSpecifiedException(MusicPlayerException):
     """No command was specified in the request"""
 
+
 class requires(object):
     """
     A decorator to check that the data provided to a command contains all the fields it requires,

@@ -1,15 +1,23 @@
-import vlc
+import pygame.mixer as mixer
 
 class MusicPlayer(object):
 
     def __init__(self):
-        self.vlc = vlc.Instance()
-        self.vlc_player = self.vlc.media_player_new()
+        """Initialise pygame mixer and set attributes"""
+        mixer.init()
+        self.playing = False
 
     def play_song(self, filename):
-        media = self.vlc.media_new(filename)
-        self.vlc_player.set_media(media)
-        self.vlc_player.play()
+        """Play the specified song"""
+        song = mixer.music.load(filename)
+        mixer.music.play()
+        self.playing = True
 
     def toggle_pause(self):
-        self.vlc_player.pause()
+        """Pause if currently playing, and unpause if currently paused"""
+        if self.playing:
+            mixer.music.pause()
+            self.playing = False
+        else:
+            mixer.music.unpause()
+            self.playing = True

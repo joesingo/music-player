@@ -5,5 +5,5 @@ Things to test:
 * Don't provide all required fields
 
 Dependencies:
-* vlc
-* vlc.py
+* pygame >= 1.9.2 (not in ubuntu repos - must compile)
+* libsdl-mixer1.2-dev
