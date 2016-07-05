@@ -1,0 +1,2 @@
+#!/usr/bin/fish
+echo $argv | nc localhost 9090
