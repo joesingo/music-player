@@ -1,4 +1,5 @@
 from exceptions import InvalidCommandException
+from song import Song
 
 
 class requires(object):
@@ -25,14 +26,12 @@ class requires(object):
 
         return wrapper
 
-# Required fields common to multiple commands
-SONG_REQUIRED_FIELDS = ["song", "album", "artist"]
 
-
-@requires(*SONG_REQUIRED_FIELDS)
+@requires(*Song.REQUIRED_FIELDS)
 def play_command(data, player):
-        player.play_song(data["song"], data["album"], data["artist"])
-        print("Playing {} by {}".format(data["song"], data["artist"]))
+        song = Song(data)
+        player.play_song(song)
+        print("Playing {} ".format(song))
 
 
 def toggle_pause_command(data, player):

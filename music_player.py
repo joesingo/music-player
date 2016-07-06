@@ -19,11 +19,11 @@ class MusicPlayer(object):
         self.state = States.stopped
         self.music_directory = music_directory
 
-    def play_song(self, song, album, artist):
+    def play_song(self, song):
         """Play the specified song"""
-        filename = self.get_song_filename(song, album, artist)
+        filename = self.get_song_filename(song)
         try:
-            song = mixer.music.load(filename)
+            mixer.music.load(filename)
         except pygame.error:
             raise SongNotFoundException("File '{}' is not an audio file or does not exist"
                                         .format(filename))
@@ -47,7 +47,7 @@ class MusicPlayer(object):
             mixer.music.stop()
             self.state = States.stopped
 
-    def get_song_filename(self, song, album, artist):
+    def get_song_filename(self, song):
         """Return the filename for a given song"""
-        return "{}/{}/{}/{}".format(self.music_directory, artist, album, song)
+        return "{}/{}/{}/{}".format(self.music_directory, song.artist, song.album, song.name)
 
