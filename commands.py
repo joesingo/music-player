@@ -42,8 +42,18 @@ def stop_command(data, player):
     player.stop()
 
 
+def list_command(data, player):
+    """Return a list containing a dictionary for each song in the library, with fields for song
+    name, album and artist"""
+    songs = []
+    for song in player.list_songs():
+        songs.append(song.to_dict())
+    return songs
+
+
 COMMANDS = {
     "play": play_command,
     "toggle-pause": toggle_pause_command,
-    "stop": stop_command
+    "stop": stop_command,
+    "list": list_command
 }

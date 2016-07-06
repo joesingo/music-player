@@ -1,8 +1,11 @@
+import os
+import os.path
 import pygame
 import pygame.mixer as mixer
 from enum import Enum
 
 from exceptions import SongNotFoundException
+from song import Song
 
 
 class States(Enum):
@@ -12,6 +15,8 @@ class States(Enum):
     paused = 3
 
 class MusicPlayer(object):
+
+    SUPPORTED_FORMATS = ("mp3", "ogg")
 
     def __init__(self, music_directory):
         """Initialise pygame mixer and set attributes"""
@@ -49,5 +54,18 @@ class MusicPlayer(object):
 
     def get_song_filename(self, song):
         """Return the filename for a given song"""
-        return "{}/{}/{}/{}".format(self.music_directory, song.artist, song.album, song.name)
+        return os.path.join(self.music_directory, song.artist, song.album, song.name)
 
+    def list_songs(self):
+        """A generator to give a list of songs under the music directory"""
+        for artist in os.listdir(self.music_directory):
+            artist_dir = os.path.join(self.music_directory, artist)
+
+            for album in os.listdir(artist_dir):
+                album_dir = os.path.join(artist_dir, album)
+
+                for file in os.listdir(album_dir):
+                    for extension in MusicPlayer.SUPPORTED_FORMATS:
+                        if file.endswith("." + extension):
+                            song = Song({"song": file, "album": album, "artist": artist})
+                            yield song
