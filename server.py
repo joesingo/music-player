@@ -18,6 +18,7 @@ class Server(object):
         self.hostname = hostname
         self.port = port
         self.socket = socket.socket()
+        self.socket.settimeout(0)  # non-blocking mode
         self.socket.bind((self.hostname, self.port))
 
         self.player = MusicPlayer(music_directory)
@@ -28,26 +29,33 @@ class Server(object):
         print("Starting...")
 
         while True:
-            conn, addr = self.socket.accept()
-
-            # Template for the reply
-            reply = {
-                "status": "",
-                "message": ""
-            }
 
             try:
-                reply_message = self.handle_request(conn, addr)
-                # If above line went without raising an exception then everything has gone fine
-                reply["status"] = "okay"
-                reply["message"] = reply_message or ""
+                conn, addr = self.socket.accept()
 
-            except MusicPlayerException as e:
-                reply["status"] = "error"
-                # Set the message to the error message from the exception
-                reply["message"] = e.args[0]
+                # Template for the reply
+                reply = {
+                    "status": "",
+                    "message": ""
+                }
 
-            conn.sendall(json.dumps(reply).encode(Server.ENCODING))
+                try:
+                    reply_message = self.handle_request(conn, addr)
+                    # If above line went without raising an exception then everything has gone fine
+                    reply["status"] = "okay"
+                    reply["message"] = reply_message or ""
+
+                except MusicPlayerException as e:
+                    reply["status"] = "error"
+                    # Set the message to the error message from the exception
+                    reply["message"] = e.args[0]
+
+                conn.sendall(json.dumps(reply).encode(Server.ENCODING))
+
+            except BlockingIOError:
+                pass
+
+            self.player.main_loop()
 
     def handle_request(self, conn, address):
         """Handle a request and return a message to return to the client"""

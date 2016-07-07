@@ -1,3 +1,6 @@
+Things to do:
+    * Logging
+
 Things to test:
 
 * Invalid JSON in server_config

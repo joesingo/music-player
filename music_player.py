@@ -1,6 +1,7 @@
 import os
 import os.path
 import pygame
+import pygame.event
 import pygame.mixer as mixer
 from enum import Enum
 
@@ -21,8 +22,23 @@ class MusicPlayer(object):
     def __init__(self, music_directory):
         """Initialise pygame mixer and set attributes"""
         mixer.init()
+        self.pygame_event = pygame.USEREVENT + 1
+        mixer.music.set_endevent(self.pygame_event)
+
         self.state = States.stopped
         self.music_directory = music_directory
+
+        # Annoyingly have to start the display stuff for events to work
+        pygame.init()
+        pygame.display.set_mode((1, 1))
+
+
+    def main_loop(self):
+        """Check for pygame events for when a song ends"""
+        for event in pygame.event.get():
+            if event.type == self.pygame_event:
+                print("Playback finished")
+
 
     def play_song(self, song):
         """Play the specified song"""
@@ -48,6 +64,8 @@ class MusicPlayer(object):
 
     def stop(self):
         """Stop playback"""
+        print("Stopping playback")
+
         if self.state != States.stopped:
             mixer.music.stop()
             self.state = States.stopped
