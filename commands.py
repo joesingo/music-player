@@ -31,7 +31,6 @@ class requires(object):
 def play_command(data, player):
         song = Song(data)
         player.play_song(song)
-        print("Playing {} ".format(song))
 
 
 def toggle_pause_command(data, player):
@@ -50,10 +49,17 @@ def list_command(data, player):
         songs.append(song.to_dict())
     return songs
 
+@requires(*Song.REQUIRED_FIELDS)
+def add_to_queue_command(data, player):
+    """Add a song to the play queue"""
+    song = Song(data)
+    player.play_queue.add(song)
+
 
 COMMANDS = {
     "play": play_command,
     "toggle-pause": toggle_pause_command,
     "stop": stop_command,
-    "list": list_command
+    "list": list_command,
+    "add-to-queue": add_to_queue_command
 }

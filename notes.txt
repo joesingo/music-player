@@ -9,7 +9,7 @@ Things to test:
     * Send invalid JSON
     * Don't specify a command
     * Specify an unknown command
-    * Don't provide all required fields
+    * Don't provide all required fields (play and add-to-queue)
 
 * Play command:
     * Provide invalid path to song

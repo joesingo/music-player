@@ -7,6 +7,7 @@ from enum import Enum
 
 from exceptions import SongNotFoundException
 from song import Song
+from song_queue import SongQueue
 
 
 class States(Enum):
@@ -21,24 +22,32 @@ class MusicPlayer(object):
 
     def __init__(self, music_directory):
         """Initialise pygame mixer and set attributes"""
+
+        # Start pygame stuff
         mixer.init()
-        self.pygame_event = pygame.USEREVENT + 1
-        mixer.music.set_endevent(self.pygame_event)
+        self.SONG_FINISHED_EVENT = pygame.USEREVENT + 1
+        mixer.music.set_endevent(self.SONG_FINISHED_EVENT)
+        # Annoyingly have to start the display stuff for events to work
+        pygame.init()
+        pygame.display.set_mode((1, 1))
 
         self.state = States.stopped
         self.music_directory = music_directory
 
-        # Annoyingly have to start the display stuff for events to work
-        pygame.init()
-        pygame.display.set_mode((1, 1))
+        self.play_queue = SongQueue()
 
 
     def main_loop(self):
         """Check for pygame events for when a song ends"""
         for event in pygame.event.get():
-            if event.type == self.pygame_event:
+            if event.type == self.SONG_FINISHED_EVENT:
                 print("Playback finished")
 
+                self.state = States.stopped
+
+                next_song = self.play_queue.dequeue()
+                if next_song:
+                    self.play_song(next_song)
 
     def play_song(self, song):
         """Play the specified song"""
@@ -51,6 +60,8 @@ class MusicPlayer(object):
 
         mixer.music.play()
         self.state = States.playing
+
+        print("Playing {} ".format(song))
 
     def toggle_pause(self):
         """Pause if currently playing, and unpause if currently paused"""
