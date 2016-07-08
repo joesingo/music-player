@@ -14,15 +14,18 @@ class requires(object):
     def __init__(self, *required_fields):
         self.required_fields = required_fields
 
-    def __call__(self, func):
-        def wrapper(data, player, *args, **kwargs):
-            # Check all fields in required_fields are in data
-            for field in self.required_fields:
-                if field not in data:
-                    raise InvalidCommandException("Required field '{}' is missing".format(field))
+    def check_fields(self, data):
+        """Check that the dictionary data contains each field in self.required_fields"""
+        for field in self.required_fields:
+            if field not in data:
+                raise InvalidCommandException("Required field '{}' is missing".format(field))
 
+    def __call__(self, func):
+        def wrapper(*args, **kwargs):
+            # We are assuming the data is passed as the first argument
+            self.check_fields(args[0])
             # Call the actual function
-            func(data, player, *args, **kwargs)
+            func(*args, **kwargs)
 
         return wrapper
 
@@ -49,11 +52,15 @@ def list_command(data, player):
         songs.append(song.to_dict())
     return songs
 
-@requires(*Song.REQUIRED_FIELDS)
+@requires("songs")
 def add_to_queue_command(data, player):
     """Add a song to the play queue"""
-    song = Song(data)
-    player.play_queue.add(song)
+    for s in data["songs"]:
+        # Check that each item in data["songs"] actual describes a song
+        checker = requires(*Song.REQUIRED_FIELDS)
+        checker.check_fields(s)
+
+        player.play_queue.add(Song(s))
 
 
 COMMANDS = {

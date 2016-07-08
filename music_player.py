@@ -27,9 +27,7 @@ class MusicPlayer(object):
         mixer.init()
         self.SONG_FINISHED_EVENT = pygame.USEREVENT + 1
         mixer.music.set_endevent(self.SONG_FINISHED_EVENT)
-        # Annoyingly have to start the display stuff for events to work
         pygame.init()
-        pygame.display.set_mode((1, 1))
 
         self.state = States.stopped
         self.music_directory = music_directory
