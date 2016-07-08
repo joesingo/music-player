@@ -71,11 +71,17 @@ def next_song_command(data, player):
     player.next_song()
 
 
+def list_queue_command(data, player):
+    """Return a list of songs in the play queue"""
+    return [song.to_dict() for song in player.play_queue.songs]
+
+
 COMMANDS = {
     "play": play_command,
     "toggle-pause": toggle_pause_command,
     "stop": stop_command,
     "list": list_command,
     "add-to-queue": add_to_queue_command,
-    "next": next_song_command
+    "next": next_song_command,
+    "list-queue": list_queue_command
 }

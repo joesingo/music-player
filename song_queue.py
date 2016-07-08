@@ -21,3 +21,7 @@ class SongQueue(object):
     def get_length(self):
         """Get the number of songs currently in the queue"""
         return len(self.songs)
+
+    def __str__(self):
+        """String representation of the queue"""
+        return ", ".join(self.songs)
