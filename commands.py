@@ -55,6 +55,9 @@ def list_command(data, player):
 @requires("songs")
 def add_to_queue_command(data, player):
     """Add a song to the play queue"""
+    if type(data["songs"]) != list:
+        raise InvalidCommandException("No songs specified")
+
     for s in data["songs"]:
         # Check that each item in data["songs"] actual describes a song
         checker = requires(*Song.REQUIRED_FIELDS)

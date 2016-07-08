@@ -70,7 +70,7 @@ class Server(object):
             raise InvalidJSONException("Invalid JSON")
 
         # Check a command has been specified
-        if "command" not in data:
+        if type(data) != dict or "command" not in data:
             raise NoCommandSpecifiedException("No command specified")
 
         # Try to get the actual function for the command
