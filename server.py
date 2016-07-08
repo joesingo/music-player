@@ -82,10 +82,10 @@ class Server(object):
         return command(data, self.player)
 
 if __name__ == "__main__":
+    # Read the config file
     with open("server_config.json") as config_file:
         config = json.load(config_file)
 
-    # Read the config file
     hostname = config["hostname"]
     port = config["port"]
     music_directory = config["music_directory"]

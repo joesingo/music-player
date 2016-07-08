@@ -66,10 +66,16 @@ def add_to_queue_command(data, player):
         player.play_queue.add(Song(s))
 
 
+def next_song_command(data, player):
+    """Skip to the next song in the queue"""
+    player.next_song()
+
+
 COMMANDS = {
     "play": play_command,
     "toggle-pause": toggle_pause_command,
     "stop": stop_command,
     "list": list_command,
-    "add-to-queue": add_to_queue_command
+    "add-to-queue": add_to_queue_command,
+    "next": next_song_command
 }

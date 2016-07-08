@@ -40,12 +40,8 @@ class MusicPlayer(object):
         for event in pygame.event.get():
             if event.type == self.SONG_FINISHED_EVENT:
                 print("Playback finished")
-
                 self.state = States.stopped
-
-                next_song = self.play_queue.dequeue()
-                if next_song:
-                    self.play_song(next_song)
+                self.next_song()
 
     def play_song(self, song):
         """Play the specified song"""
@@ -96,3 +92,11 @@ class MusicPlayer(object):
                         if file.endswith("." + extension):
                             song = Song({"song": file, "album": album, "artist": artist})
                             yield song
+
+    def next_song(self):
+        """Skip to the next song in the queue if there is one, and stop playback otherwise"""
+        next_song = self.play_queue.dequeue()
+        if next_song:
+            self.play_song(next_song)
+        else:
+            self.stop()
