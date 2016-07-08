@@ -1,20 +1,3 @@
-Things to do:
-    * Logging
-
-Things to test:
-
-* Invalid JSON in server_config
-
-* Messages sent to server:
-    * Send invalid JSON
-    * Don't specify a command
-    * Specify an unknown command
-    * Don't provide all required fields (play and add-to-queue)
-
-* Play command:
-    * Provide invalid path to song
-    * Provide path to non-song file
-
 Dependencies:
 * pygame >= 1.9.2 (not in ubuntu repos - must compile)
 * libsdl-mixer1.2-dev
