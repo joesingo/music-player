@@ -46,6 +46,9 @@ class MusicPlayer(object):
 
     def play_song(self, song):
         """Play the specified song"""
+        assert(self.state == States.stopped)
+        assert(self.current_song is None)
+
         filename = self.get_song_filename(song)
         try:
             mixer.music.load(filename)
