@@ -3,6 +3,6 @@ Dependencies:
 * libsdl-mixer1.2-dev
 
 For easy copy-pasting:
-    echo '{"command": "play", "song": ""}' | nc localhost 9090
-    echo '{"command": "toggle-pause"}' | nc localhost 9090
-    echo '{"command": "stop"}' | nc localhost 9090
+    '{"command": "play", "song": ""}'
+    '{"command": "toggle-pause"}'
+    '{"command": "stop"}'

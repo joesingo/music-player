@@ -12,9 +12,9 @@ from song_queue import SongQueue
 
 class States(Enum):
     """An enum to represent the possible states of a MusicPlayer"""
-    stopped = 1
-    playing = 2
-    paused = 3
+    stopped = "Stopped"
+    playing = "Playing"
+    paused = "Paused"
 
 class MusicPlayer(object):
 
@@ -30,6 +30,7 @@ class MusicPlayer(object):
         pygame.init()
 
         self.state = States.stopped
+        self.current_song = None
         self.music_directory = music_directory
 
         self.play_queue = SongQueue()
@@ -40,7 +41,7 @@ class MusicPlayer(object):
         for event in pygame.event.get():
             if event.type == self.SONG_FINISHED_EVENT:
                 print("Playback finished")
-                self.state = States.stopped
+                self.stop()
                 self.next_song()
 
     def play_song(self, song):
@@ -54,6 +55,7 @@ class MusicPlayer(object):
 
         mixer.music.play()
         self.state = States.playing
+        self.current_song = song
 
         print("Playing {} ".format(song))
 
@@ -69,11 +71,11 @@ class MusicPlayer(object):
 
     def stop(self):
         """Stop playback"""
-        print("Stopping playback")
-
         if self.state != States.stopped:
+            print("Stopping playback")
             mixer.music.stop()
             self.state = States.stopped
+            self.current_song = None
 
     def get_song_filename(self, song):
         """Return the filename for a given song"""
@@ -95,11 +97,11 @@ class MusicPlayer(object):
 
     def next_song(self):
         """Skip to the next song in the queue if there is one, and stop playback otherwise"""
+        self.stop()
+
         next_song = self.play_queue.dequeue()
         if next_song:
             self.play_song(next_song)
-        else:
-            self.stop()
 
     def add_to_queue(self, song):
         """Add the provided song to the play queue"""
@@ -109,3 +111,25 @@ class MusicPlayer(object):
         # play it now
         if self.state == States.stopped and self.play_queue.get_length() == 1:
             self.next_song()
+
+    def get_info(self):
+        """Return the current state, and if a song is playing return its info and elapsed time"""
+        info = {
+            "state": self.state.value
+        }
+
+        # If a song is playing (or has been paused), add info about it
+        if self.current_song is not None:
+            info["song"] = self.current_song.to_dict()
+            info["time"] = MusicPlayer.minutes_and_seconds(mixer.music.get_pos())
+
+        return info
+
+    @staticmethod
+    def minutes_and_seconds(time_in_ms):
+        """Convert an amount of time in milliseconds to minutes and seconds, rounded to the nearest
+        second, e.g. 83211 -> 1:23"""
+        total_seconds = round(time_in_ms / 1000)
+        minutes = total_seconds // 60
+        seconds = total_seconds % 60
+        return "{}:{:0>2}".format(minutes, seconds)

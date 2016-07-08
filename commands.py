@@ -76,6 +76,10 @@ def list_queue_command(data, player):
     return [song.to_dict() for song in player.play_queue.songs]
 
 
+def now_playing_command(data, player):
+    """Return the current state, and if a song is playing return its info and elapsed time"""
+    return player.get_info()
+
 COMMANDS = {
     "play": play_command,
     "toggle-pause": toggle_pause_command,
@@ -83,5 +87,6 @@ COMMANDS = {
     "list": list_command,
     "add-to-queue": add_to_queue_command,
     "next": next_song_command,
-    "list-queue": list_queue_command
+    "list-queue": list_queue_command,
+    "now-playing": now_playing_command
 }
