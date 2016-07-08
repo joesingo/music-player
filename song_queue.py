@@ -17,3 +17,7 @@ class SongQueue(object):
             return s
         else:
             return None
+
+    def get_length(self):
+        """Get the number of songs currently in the queue"""
+        return len(self.songs)

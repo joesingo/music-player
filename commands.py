@@ -63,7 +63,7 @@ def add_to_queue_command(data, player):
         checker = requires(*Song.REQUIRED_FIELDS)
         checker.check_fields(s)
 
-        player.play_queue.add(Song(s))
+        player.add_to_queue(Song(s))
 
 
 def next_song_command(data, player):

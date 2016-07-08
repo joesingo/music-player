@@ -100,3 +100,12 @@ class MusicPlayer(object):
             self.play_song(next_song)
         else:
             self.stop()
+
+    def add_to_queue(self, song):
+        """Add the provided song to the play queue"""
+        self.play_queue.add(song)
+
+        # If no song is playing and we have just added something to the front of the queue, then
+        # play it now
+        if self.state == States.stopped and self.play_queue.get_length() == 1:
+            self.next_song()
