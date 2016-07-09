@@ -32,12 +32,17 @@ class requires(object):
 
 @requires(*Song.REQUIRED_FIELDS)
 def play_command(data, player):
-        song = Song(data)
-        player.play_song(song)
+    song = Song(data)
+    player.play_song(song)
 
 
 def toggle_pause_command(data, player):
+    """Toggle pause on and off"""
     player.toggle_pause()
+
+def toggle_shuffle_command(data, player):
+    """Toggle shuffle on and off"""
+    player.play_queue.toggle_shuffle()
 
 
 def stop_command(data, player):
@@ -73,16 +78,18 @@ def next_song_command(data, player):
 
 def list_queue_command(data, player):
     """Return a list of songs in the play queue"""
-    return [song.to_dict() for song in player.play_queue.songs]
+    return [song.to_dict() for song in player.play_queue.queue]
 
 
 def now_playing_command(data, player):
     """Return the current state, and if a song is playing return its info and elapsed time"""
     return player.get_info()
 
+
 COMMANDS = {
     "play": play_command,
     "toggle-pause": toggle_pause_command,
+    "toggle-shuffle": toggle_shuffle_command,
     "stop": stop_command,
     "list": list_command,
     "add-to-queue": add_to_queue_command,
