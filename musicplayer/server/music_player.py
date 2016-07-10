@@ -5,9 +5,9 @@ import pygame.event
 import pygame.mixer as mixer
 from enum import Enum
 
-from exceptions import SongNotFoundException
-from song import Song
-from song_queue import SongQueue
+from server.exceptions import SongNotFoundException
+from server.song import Song
+from server.song_queue import SongQueue
 
 
 class States(Enum):

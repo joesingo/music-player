@@ -1,5 +1,5 @@
-from exceptions import InvalidCommandException
-from song import Song
+from server.exceptions import InvalidCommandException
+from server.song import Song
 
 
 class requires(object):
