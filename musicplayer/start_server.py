@@ -5,7 +5,6 @@ from server.server import Server
 
 if __name__ == "__main__":
     directory = os.path.dirname(os.path.realpath(__file__))
-    print(directory)
 
     # Read the config file
     with open(directory + "/server/server_config.json") as config_file:

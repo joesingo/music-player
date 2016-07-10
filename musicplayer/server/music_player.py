@@ -46,8 +46,7 @@ class MusicPlayer(object):
 
     def play_song(self, song):
         """Play the specified song"""
-        assert(self.state == States.stopped)
-        assert(self.current_song is None)
+        self.stop()
 
         filename = self.get_song_filename(song)
         try:

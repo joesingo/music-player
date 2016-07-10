@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Music player</title>
+    <style type="text/css">
+
+    </style>
+    <script id="song-list" type="application/json">
+        {{ list|safe }}
+    </script>
+</head>
+
+<body>
+
+    <script type="text/javascript">
+
+        var httpRequest;
+
+        var sendCommand = function(command) {
+            // Convert the command object to a JSON string and send to the server
+            httpRequest = new XMLHttpRequest();
+            httpRequest.onreadystatechange = handleAjaxReply;
+            httpRequest.open("POST", "/send")
+            httpRequest.setRequestHeader("Content-type", "application/json")
+            httpRequest.send(JSON.stringify(command))
+        }
+
+        var handleAjaxReply = function() {
+            if (httpRequest.readyState === XMLHttpRequest.DONE) {
+                if (httpRequest.status === 200) {
+                    reply = JSON.parse(httpRequest.responseText);
+                    console.log(reply);
+                }
+            }
+        }
+
+        var playSong = function() {
+            command = {
+                "command": "play",
+                "song": this.getAttribute("data-song"),
+                "album": this.getAttribute("data-album"),
+                "artist": this.getAttribute("data-artist")
+            }
+            sendCommand(command)
+        }
+
+        var songList = JSON.parse(document.getElementById("song-list").innerHTML);
+        console.log(songList);
+
+        if (songList["status"] === "okay") {
+            for (var i=0; i<songList["message"].length; i++) {
+                var song = songList["message"][i];
+                var songDiv = document.createElement("div");
+                songDiv.innerHTML = song["song"];
+                songDiv.setAttribute("data-song", song["song"]);
+                songDiv.setAttribute("data-album", song["album"]);
+                songDiv.setAttribute("data-artist", song["artist"]);
+                songDiv.onclick = playSong;
+                document.body.appendChild(songDiv);
+            }
+        }
+
+    </script>
+
+</body>
+
+</html>
