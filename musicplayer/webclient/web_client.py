@@ -9,6 +9,9 @@ app = Flask(__name__)
 def send_command(command):
     """"Send the provided command (as a string) to the music player server, and return the reply
     as a string"""
+
+    # TODO: Proper error handling here
+
     # Create socket to connect to server
     sock = socket.create_connection(("localhost", 9099))
 

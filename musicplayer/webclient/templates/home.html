@@ -5,6 +5,24 @@
     <title>Music player</title>
     <style type="text/css">
 
+        table {
+            border-collapse: collapse;
+        }
+
+        td {
+            border: 1px solid blue;
+            vertical-align: top;
+            padding: 10px;
+        }
+
+        td div.selected {
+            background: lightblue;
+            color: white;
+        }
+        td.focused div.selected {
+            background: blue;
+        }
+
     </style>
     <script id="song-list" type="application/json">
         {{ list|safe }}
@@ -16,6 +34,157 @@
     <script type="text/javascript">
 
         var httpRequest;
+        var songList = JSON.parse(document.getElementById("song-list").innerHTML);
+        var library = {}
+        var artists = [];
+        var albums = [];
+        var songs = [];
+
+        function addClass(element, className) {
+            // Add the specified class to the given element
+            var classes = element.className.split(" ");
+            if (classes.indexOf(className) === -1) {
+                classes.push(className);
+            }
+            element.className = classes.join(" ");
+        }
+
+        function removeClass(element, className) {
+            // Remove the specified class from the given element
+            var classes = element.className.split(" ");
+            var index = classes.indexOf(className);
+            if (index !== -1) {
+                classes.splice(index, 1);
+            }
+            element.className = classes.join(" ");
+        }
+
+        function Table(columns_p) {
+
+            var table = document.createElement("table");
+            var row = document.createElement("tr");
+            table.appendChild(row);
+
+            this.columns = columns_p;
+
+            this.focused = 0;
+            this.columns[this.focused].focus();
+
+            // This is used to access the Table object in the event listener below, where this
+            // refers to the element that was clicked
+            thisTable = this;
+
+            for (var i=0; i<this.columns.length; i++) {
+                // Add the columns to the table
+                row.appendChild(this.columns[i].col)
+
+                // Set event listener to focus on this column when clicked
+                this.columns[i].col.addEventListener("click", function() {
+                    // Find the clicked column
+                    for (var j=0; j<thisTable.columns.length; j++) {
+                        if (thisTable.columns[j].col === this) {
+                            break;
+                        }
+                    }
+
+                    thisTable.columns[thisTable.focused].unfocus();
+                    thisTable.focused = j;
+                    thisTable.columns[thisTable.focused].focus();
+                })
+            }
+
+            this.moveFocus = function(d) {
+                // Change the focused column
+                // d == -1 => move left
+                // d == 1 => move right
+                var newFocus = this.focused + d;
+
+                if (newFocus < 0 || newFocus >= this.columns.length) {
+                    return;
+                }
+
+                this.columns[this.focused].unfocus()
+                this.focused = newFocus;
+                this.columns[this.focused].focus();
+            }
+
+            this.focusLeft = function() {
+                this.moveFocus(-1);
+            }
+
+            this.focusRight = function() {
+                this.moveFocus(1);
+            }
+
+            this.addToPage = function() {
+                // Append the actual table to the page body
+                document.body.appendChild(table);
+            }
+        }
+
+        function Column(items_p, noun) {
+            var items = ["All"].concat(items_p)
+            this.col = document.createElement("td");
+            var itemDivs = [];
+            var selected = 0;
+
+            // Add items to the column
+            for (var i=0; i<items.length; i++) {
+                var div = document.createElement("div");
+                div.setAttribute("data-" + noun, items[i]);
+                div.innerHTML = items[i];
+                this.col.appendChild(div);
+                itemDivs.push(div);
+
+                // Add an event listener to select this item when clicked on
+                div.addEventListener("click", function(e) {
+                    // Find the item
+                    for (var j=0; j<items.length; j++) {
+                        if (this.getAttribute("data-" + noun) === items[j]) {
+                            break;
+                        }
+                    }
+
+                    removeClass(itemDivs[selected], "selected");
+                    selected = j;
+                    addClass(itemDivs[selected], "selected");
+                })
+            }
+
+            addClass(itemDivs[selected], "selected");
+
+            var moveSelection = function(d) {
+                // d == -1 => move up
+                // d == 1 => move down
+                var newSelection = selected + d;
+
+                if (newSelection < 0 || newSelection >= items.length) {
+                    return;
+                }
+
+                // Un-select the old selection and select the new one
+                removeClass(itemDivs[selected], "selected");
+                selected = newSelection;
+                addClass(itemDivs[selected], "selected");
+            }
+
+            this.selectionUp = function() {
+                moveSelection(-1);
+            }
+
+            this.selectionDown = function() {
+                moveSelection(1);
+            }
+
+            this.focus = function() {
+                addClass(this.col, "focused")
+            }
+
+            this.unfocus = function() {
+                removeClass(this.col, "focused");
+            }
+
+        }
 
         var sendCommand = function(command) {
             // Convert the command object to a JSON string and send to the server
@@ -27,6 +196,7 @@
         }
 
         var handleAjaxReply = function() {
+            // Callback function to handle response from an AJAX request
             if (httpRequest.readyState === XMLHttpRequest.DONE) {
                 if (httpRequest.status === 200) {
                     reply = JSON.parse(httpRequest.responseText);
@@ -45,20 +215,63 @@
             sendCommand(command)
         }
 
-        var songList = JSON.parse(document.getElementById("song-list").innerHTML);
-        console.log(songList);
-
         if (songList["status"] === "okay") {
+            // Add all songs to the page
             for (var i=0; i<songList["message"].length; i++) {
                 var song = songList["message"][i];
-                var songDiv = document.createElement("div");
-                songDiv.innerHTML = song["song"];
-                songDiv.setAttribute("data-song", song["song"]);
-                songDiv.setAttribute("data-album", song["album"]);
-                songDiv.setAttribute("data-artist", song["artist"]);
-                songDiv.onclick = playSong;
-                document.body.appendChild(songDiv);
+
+
+                // Create an entry for this artist in the library if it doesn't already exist
+                if (!(song["artist"] in library)) {
+                    library[song["artist"]] = {};
+                    artists.push(song["artist"]);
+                }
+
+                // Do the same for album
+                if (!(song["album"] in library[song["artist"]])) {
+                    library[song["artist"]][song["album"]] = [];
+                    albums.push(song["album"]);
+                }
+
+                // Put the song in
+                library[song["artist"]][song["album"]].push(song["song"]);
+                songs.push(song["song"]);
             }
+
+            // Sort artists, albums and song in alphabetical order
+            artists.sort()
+            albums.sort()
+            songs.sort()
+
+            var table = new Table(
+                [new Column(artists, "artist"), new Column(albums, "album"),
+                 new Column(songs, "song")]
+            );
+            table.addToPage();
+
+            // Set up event listeners to move focus and selection with arrow keys
+            addEventListener("keydown", function(e) {
+                e.preventDefault();
+                switch (e.keyCode) {
+                    case 37:
+                        table.focusLeft();
+                        break;
+                    case 38:
+                        table.columns[table.focused].selectionUp();
+                        break;
+                    case 39:
+                        table.focusRight();
+                        break;
+                    case 40:
+                        table.columns[table.focused].selectionDown();
+                        break;
+                }
+            })
+
+        }
+        else {
+            // TODO: Do proper error handling
+            alert("Error getting song list");
         }
 
     </script>
