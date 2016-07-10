@@ -52,10 +52,7 @@ def stop_command(data, player):
 def list_command(data, player):
     """Return a list containing a dictionary for each song in the library, with fields for song
     name, album and artist"""
-    songs = []
-    for song in player.list_songs():
-        songs.append(song.to_dict())
-    return songs
+    return player.list_songs()
 
 @requires("songs")
 def add_to_queue_command(data, player):

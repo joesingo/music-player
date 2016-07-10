@@ -85,17 +85,21 @@ class MusicPlayer(object):
 
     def list_songs(self):
         """A generator to give a list of songs under the music directory"""
+        library = {}
         for artist in os.listdir(self.music_directory):
             artist_dir = os.path.join(self.music_directory, artist)
+            library[artist] = {}
 
             for album in os.listdir(artist_dir):
                 album_dir = os.path.join(artist_dir, album)
+                library[artist][album] = []
 
                 for file in os.listdir(album_dir):
                     for extension in MusicPlayer.SUPPORTED_FORMATS:
                         if file.endswith("." + extension):
-                            song = Song({"song": file, "album": album, "artist": artist})
-                            yield song
+                            library[artist][album].append(file)
+
+        return library
 
     def next_song(self):
         """Skip to the next song in the queue if there is one, and stop playback otherwise"""
