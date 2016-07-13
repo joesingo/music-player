@@ -5,28 +5,54 @@
     <title>Music player</title>
     <style type="text/css">
 
+        #search-area {
+            text-align: center;
+            margin: 20px;
+        }
+
+        #search-area input {
+            padding: 5px;
+            font-size: 1.2em;
+        }
+
         table {
             border-collapse: collapse;
+            margin: auto;
         }
 
         td {
-            /*border: 2px solid #0d0221;*/
-            vertical-align: top;
-            padding: 0;
-            background: white;
             font-family: "Arial";
-        }
-
-        td div {
+            border: 1px solid gray;
             padding: 10px;
         }
 
-        td div.selected {
-            background: #26408b;
-            color: white;
+        td:hover {
+            background: #efefef;
         }
-        td.focused div.selected {
-            background: #0f084b;
+
+        td.title {
+            background: black;
+            color: white;
+            font-weight: bold;
+        }
+
+        span.minor {
+            display: none;
+            float: right;
+            color: gray;
+        }
+
+        td:hover span.minor {
+            display: inline;
+        }
+
+        span.minor > span {
+            cursor: pointer;
+            padding: 0 5px;
+        }
+
+        span.minor > span:hover {
+            color: black;
         }
 
     </style>
@@ -36,160 +62,44 @@
 </head>
 
 <body>
+    <div id="search-area">
+        <input type="text" id="search-query" onkeyup="search(this.value)" />
+    </div>
+
+    <table id="main-table">
+        <tbody id="artist-rows">
+            <tr>
+                <td class="title">Artists</td>
+            </tr>
+        </tbody>
+        <tbody id="album-rows">
+            <tr>
+                <td class="title">Albums</td>
+            </tr>
+        </tbody>
+        <tbody id="song-rows">
+            <tr>
+                <td class="title">Songs</td>
+            </tr>
+        </tbody>
+    </table>
 
     <script type="text/javascript">
 
-        var httpRequest;
-        var songList = JSON.parse(document.getElementById("song-list").innerHTML);
-        var library = {}
-        var artists = [];
-        var albums = [];
-        var songs = [];
+        var search = function(query) {
+            var allRows = artistRows.concat(albumRows).concat(songRows);
 
-        function addClass(element, className) {
-            // Add the specified class to the given element
-            var classes = element.className.split(" ");
-            if (classes.indexOf(className) === -1) {
-                classes.push(className);
-            }
-            element.className = classes.join(" ");
-        }
+            // Find relevant rows
+            for (var i=0; i<allRows.length; i++) {
+                // Hide row
+                allRows[i].style.display = "none";
 
-        function removeClass(element, className) {
-            // Remove the specified class from the given element
-            var classes = element.className.split(" ");
-            var index = classes.indexOf(className);
-            if (index !== -1) {
-                classes.splice(index, 1);
-            }
-            element.className = classes.join(" ");
-        }
-
-        function Table(columns_p) {
-
-            var table = document.createElement("table");
-            var row = document.createElement("tr");
-            table.appendChild(row);
-
-            this.columns = columns_p;
-
-            this.focused = 0;
-            this.columns[this.focused].focus();
-
-            // This is used to access the Table object in the event listener below, where this
-            // refers to the element that was clicked
-            thisTable = this;
-
-            for (var i=0; i<this.columns.length; i++) {
-                // Add the columns to the table
-                row.appendChild(this.columns[i].col)
-
-                // Set event listener to focus on this column when clicked
-                this.columns[i].col.addEventListener("click", function() {
-                    // Find the clicked column
-                    for (var j=0; j<thisTable.columns.length; j++) {
-                        if (thisTable.columns[j].col === this) {
-                            break;
-                        }
-                    }
-
-                    thisTable.columns[thisTable.focused].unfocus();
-                    thisTable.focused = j;
-                    thisTable.columns[thisTable.focused].focus();
-                })
-            }
-
-            this.moveFocus = function(d) {
-                // Change the focused column
-                // d == -1 => move left
-                // d == 1 => move right
-                var newFocus = this.focused + d;
-
-                if (newFocus < 0 || newFocus >= this.columns.length) {
-                    return;
+                var tag = allRows[i].getAttribute("data-tag");
+                if (tag.toLowerCase().startsWith(query.toLowerCase())) {
+                    // Row is relevant, so unhide it
+                    allRows[i].style.display = "table-row";
                 }
-
-                this.columns[this.focused].unfocus()
-                this.focused = newFocus;
-                this.columns[this.focused].focus();
             }
-
-            this.focusLeft = function() {
-                this.moveFocus(-1);
-            }
-
-            this.focusRight = function() {
-                this.moveFocus(1);
-            }
-
-            this.addToPage = function() {
-                // Append the actual table to the page body
-                document.body.appendChild(table);
-            }
-        }
-
-        function Column(items_p, noun) {
-            var items = ["All"].concat(items_p)
-            this.col = document.createElement("td");
-            var itemDivs = [];
-            var selected = 0;
-
-            // Add items to the column
-            for (var i=0; i<items.length; i++) {
-                var div = document.createElement("div");
-                div.setAttribute("data-" + noun, items[i]);
-                div.innerHTML = items[i];
-                this.col.appendChild(div);
-                itemDivs.push(div);
-
-                // Add an event listener to select this item when clicked on
-                div.addEventListener("click", function(e) {
-                    // Find the item
-                    for (var j=0; j<items.length; j++) {
-                        if (this.getAttribute("data-" + noun) === items[j]) {
-                            break;
-                        }
-                    }
-
-                    removeClass(itemDivs[selected], "selected");
-                    selected = j;
-                    addClass(itemDivs[selected], "selected");
-                })
-            }
-
-            addClass(itemDivs[selected], "selected");
-
-            var moveSelection = function(d) {
-                // d == -1 => move up
-                // d == 1 => move down
-                var newSelection = selected + d;
-
-                if (newSelection < 0 || newSelection >= items.length) {
-                    return;
-                }
-
-                // Un-select the old selection and select the new one
-                removeClass(itemDivs[selected], "selected");
-                selected = newSelection;
-                addClass(itemDivs[selected], "selected");
-            }
-
-            this.selectionUp = function() {
-                moveSelection(-1);
-            }
-
-            this.selectionDown = function() {
-                moveSelection(1);
-            }
-
-            this.focus = function() {
-                addClass(this.col, "focused")
-            }
-
-            this.unfocus = function() {
-                removeClass(this.col, "focused");
-            }
-
         }
 
         var sendCommand = function(command) {
@@ -211,68 +121,80 @@
             }
         }
 
-        var playSong = function() {
-            command = {
-                "command": "play",
-                "song": this.getAttribute("data-song"),
-                "album": this.getAttribute("data-album"),
-                "artist": this.getAttribute("data-artist")
+        var createRow = function(contents, attributes) {
+            // Return a row DOM object whose inner HTML is 'contents', where 'attributes' is an
+            // object where the keys are attributes to be set on the row
+            var row = document.createElement("tr");
+            var cell = document.createElement("td");
+            row.appendChild(cell);
+
+            cell.innerHTML = contents;
+
+            // Set attributes
+            for (var attr in attributes) {
+                row.setAttribute(attr, attributes[attr]);
             }
-            sendCommand(command)
+
+            return row;
         }
 
+        var library = {};
+        // var artists = [];
+        // var albums = [];
+        // var songs = [];
+
+        var artistRows = [];
+        var songRows = [];
+        var albumRows = [];
+
+        var songList = JSON.parse(document.getElementById("song-list").innerHTML);
+
         if (songList["status"] === "okay") {
-            // Add all songs to the page
-            for (var i=0; i<songList["message"].length; i++) {
-                var song = songList["message"][i];
+            var httpRequest;  // Used for AJAX calls
 
+            library = songList["message"];
 
-                // Create an entry for this artist in the library if it doesn't already exist
-                if (!(song["artist"] in library)) {
-                    library[song["artist"]] = {};
-                    artists.push(song["artist"]);
+            // Build up lists of artists, albums and songs
+            for (var artist in library) {
+                // artists.push(artist);
+
+                var row = createRow("<span class='major'>" + artist + "</span>",
+                                    {"data-tag": artist});
+                artistRows.push(row);
+
+                for (var album in library[artist]) {
+                    // albums.push(album);
+
+                    var html = "<span class='major'>" + album + "</span>";
+                    html += "<span class='minor'>";
+                    html += "<span>&#9654;</span>";
+                    html += "<span>&#8801;</span>"
+                    html += "</span>";
+                    var row = createRow(html, {"data-tag": album});
+                    albumRows.push(row);
+
+                    for (var i=0; i<library[artist][album].length; i++) {
+                        var song = library[artist][album][i];
+                        // songs.push(song);
+
+                        var row = createRow("<span class='major'>" + song + "</span>",
+                                            {"data-tag": song});
+                        songRows.push(row);
+                    }
                 }
-
-                // Do the same for album
-                if (!(song["album"] in library[song["artist"]])) {
-                    library[song["artist"]][song["album"]] = [];
-                    albums.push(song["album"]);
-                }
-
-                // Put the song in
-                library[song["artist"]][song["album"]].push(song["song"]);
-                songs.push(song["song"]);
             }
 
-            // Sort artists, albums and song in alphabetical order
-            artists.sort()
-            albums.sort()
-            songs.sort()
-
-            var table = new Table(
-                [new Column(artists, "artist"), new Column(albums, "album"),
-                 new Column(songs, "song")]
-            );
-            table.addToPage();
-
-            // Set up event listeners to move focus and selection with arrow keys
-            addEventListener("keydown", function(e) {
-                e.preventDefault();
-                switch (e.keyCode) {
-                    case 37:
-                        table.focusLeft();
-                        break;
-                    case 38:
-                        table.columns[table.focused].selectionUp();
-                        break;
-                    case 39:
-                        table.focusRight();
-                        break;
-                    case 40:
-                        table.columns[table.focused].selectionDown();
-                        break;
+            var d = [
+                [artistRows, "artist-rows"],
+                [albumRows, "album-rows"],
+                [songRows, "song-rows"]
+            ];
+            for (var i=0; i<d.length; i++) {
+                var parent = document.getElementById(d[i][1]);
+                for (var j=0; j<d[i][0].length; j++) {
+                    parent.appendChild(d[i][0][j]);
                 }
-            })
+            }
 
         }
         else {
