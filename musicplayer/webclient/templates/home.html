@@ -19,6 +19,15 @@
             font-size: 1.2em;
         }
 
+        #search-area > p {
+            display: none;
+        }
+
+        #show-all-icon {
+            color: red;
+            cursor: pointer;
+        }
+
         table {
             border-collapse: collapse;
             margin: auto;
@@ -26,8 +35,8 @@
 
         tr {
             border: 1px solid gray;
-            cursor: pointer;
         }
+
         td {
             padding: 10px;
         }
@@ -71,6 +80,10 @@
     <div id="search-area">
         <input type="text" id="search-query" onkeyup="search(this.value)"
                placeholder="Search all" />
+        <p id="currently-showing-p">
+            Showing: <span id="currently-showing-span"></span>
+            <span id="show-all-icon" onclick="search('')">&#10060;</span>
+        </p>
     </div>
 
     <table id="main-table">
@@ -82,6 +95,12 @@
     <script type="text/javascript">
 
         var search = function(query) {
+            // Show all rows whose 'tag' starts with the provided query,
+            // and hide all others
+
+            // Hide 'Showing: ...'
+            document.getElementById("currently-showing-p").style.display = "none";
+
             var relevantRows = [];
             for (var i=0; i<allRows.length; i++) {
                 // Skip if this row is a title row
@@ -101,11 +120,23 @@
 
         var filterTable = function(rows) {
             // Hide all rows and only show those in the 'rows' array
+
+            // Hide all the tbodys
+            var tbodys = document.getElementById("main-table")
+                                 .getElementsByTagName("tbody");
+            for (var i=0; i<tbodys.length; i++) {
+                tbodys[i].style.display = "none";
+            }
+
             for (var i=0; i<allRows.length; i++) {
+                // Hide the row...
                 allRows[i].style.display = "none";
 
                 if (rows.indexOf(allRows[i]) >= 0) {
+                    // ...and show it if it is contained in rows
                     allRows[i].style.display = "table-row";
+                    // Show the parent tbody
+                    allRows[i].parentElement.style.display = "table-row-group";
                 }
             }
         }
@@ -129,9 +160,8 @@
             }
         }
 
-        var createRow = function(contents, buttons, attributes) {
+        var createRow = function(contents, attributes) {
             // Return a row DOM object whose inner HTML is 'contents', where
-            // buttons are the DOM objects to be shown as button, and
             // 'attributes' is an object where the keys are attributes to be set
             // on the row
             var row = document.createElement("tr");
@@ -142,17 +172,32 @@
             row.appendChild(buttonsCell);
 
             cell.innerHTML = contents;
-            // Put buttons in
-            for (var i=0; i<buttons.length; i++) {
-                buttonsCell.appendChild(buttons[i]);
-            }
 
             // Set attributes
             for (var attr in attributes) {
                 row.setAttribute(attr, attributes[attr]);
             }
 
+            // Show child rows (if any exist) when the row is clicked
+            row.childRows = [];
+            row.onclick = function() {
+                if (this.childRows.length > 0) {
+                    filterTable(this.childRows);
+
+                    document.getElementById("currently-showing-span")
+                            .innerHTML = "'" + contents + "'";
+
+                    document.getElementById("currently-showing-p")
+                            .style.display = "block";
+                }
+            };
+
             return row;
+        }
+
+        var addButtonToRow = function(button, row) {
+            // Add the provided button to the row
+            row.getElementsByClassName("buttons")[0].appendChild(button);
         }
 
         var createPlayButton = function(songs) {
@@ -186,19 +231,28 @@
             var albumRows = [];
 
             // Build up lists of artists, albums and songs
-            for (var artist in library) {
+            for (let artist in library) {
 
-                // Keep track of all the rows for albums and songs for this
-                // artist
-                let artistChildRows = []
+                // Create a row for this artist
+                let artistRow = createRow(artist, {"data-tag": artist});
+                artistRow.childRows.push(artistRow);
+                artistRows.push(artistRow);
 
-                for (var album in library[artist]) {
+                for (let album in library[artist]) {
 
                     // Create a list of songs for this album to create the play
                     // button
                     let albumSongs = [];
-                    // Keep track of songs rows for this album
-                    let albumChildRows = [];
+
+                    // Create a row for this album
+                    let albumRow = createRow(album, {"data-tag": album});
+                    albumRow.childRows.push(albumRow);
+                    albumRows.push(albumRow);
+
+                    // Add this album as a 'child row' of the artist row and
+                    // vice versa
+                    artistRow.childRows.push(albumRow);
+                    albumRow.childRows.push(artistRow);
 
                     for (var i=0; i<library[artist][album].length; i++) {
                         var song = library[artist][album][i];
@@ -211,47 +265,35 @@
 
                         // Create a row for this song
                         var playButton = createPlayButton([songObject]);
-                        var row = createRow(song, [playButton],
-                                            {"data-tag": song});
-                        songRows.push(row);
+                        var niceName = song.slice(3, -4)
+                        let songRow = createRow(niceName,
+                                                {"data-tag": niceName});
+                        addButtonToRow(playButton, songRow);
+                        songRows.push(songRow);
 
-                        albumChildRows.push(row);
+                        // Add this song as a 'child row' for the album and
+                        // artist
+                        albumRow.childRows.push(songRow);
+                        artistRow.childRows.push(songRow);
                     }
 
-                    // Create a row for this album
-                    var playButton = createPlayButton(albumSongs);
-                    var row = createRow(album, [playButton],
-                                        {"data-tag": album});
-                    row.onclick = function() {
-                        filterTable(albumChildRows);
-                    };
-                    albumRows.push(row);
-
-                    // Add album row to artistChildRows...
-                    artistChildRows.push(row);
-                    // ...and add all song rows for this album too
-                    artistChildRows = artistChildRows.concat(albumChildRows);
+                    // Add a play button to the album row
+                    var albumPlayButton = createPlayButton(albumSongs);
+                    addButtonToRow(albumPlayButton, albumRow);
                 }
-
-                // Create a row for this artist
-                var row = createRow(artist, [], {"data-tag": artist});
-                row.onclick = function() {
-                    filterTable(artistChildRows);
-                };
-                artistRows.push(row);
             }
 
             // TODO: Sort rows
 
             // Add title rows
             document.getElementById("artist-rows").appendChild(
-                createRow("Artists", [], {"class": "title"})
+                createRow("Artists", {"class": "title"})
             );
             document.getElementById("album-rows").appendChild(
-                createRow("Albums", [], {"class": "title"})
+                createRow("Albums", {"class": "title"})
             );
             document.getElementById("song-rows").appendChild(
-                createRow("Songs", [], {"class": "title"})
+                createRow("Songs", {"class": "title"})
             );
 
             // Add rows to page
