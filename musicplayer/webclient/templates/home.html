@@ -20,38 +20,40 @@
             margin: auto;
         }
 
-        td {
+        tr {
             font-family: "Arial";
             border: 1px solid gray;
+        }
+        td {
             padding: 10px;
         }
 
-        td:hover {
+        tr:hover {
             background: #efefef;
         }
 
-        td.title {
+        tr.title {
             background: black;
             color: white;
             font-weight: bold;
         }
 
-        span.minor {
-            display: none;
-            float: right;
+        td.buttons {
+            text-align: right;
             color: gray;
         }
 
-        td:hover span.minor {
-            display: inline;
-        }
-
-        span.minor > span {
+        td.buttons > span {
+            visibility: hidden;
             cursor: pointer;
             padding: 0 5px;
         }
 
-        span.minor > span:hover {
+        tr:hover td.buttons > span {
+            visibility: visible;
+        }
+
+        td.buttons > span:hover {
             color: black;
         }
 
@@ -67,21 +69,9 @@
     </div>
 
     <table id="main-table">
-        <tbody id="artist-rows">
-            <tr>
-                <td class="title">Artists</td>
-            </tr>
-        </tbody>
-        <tbody id="album-rows">
-            <tr>
-                <td class="title">Albums</td>
-            </tr>
-        </tbody>
-        <tbody id="song-rows">
-            <tr>
-                <td class="title">Songs</td>
-            </tr>
-        </tbody>
+        <tbody id="artist-rows"></tbody>
+        <tbody id="album-rows"></tbody>
+        <tbody id="song-rows"></tbody>
     </table>
 
     <script type="text/javascript">
@@ -121,14 +111,23 @@
             }
         }
 
-        var createRow = function(contents, attributes) {
-            // Return a row DOM object whose inner HTML is 'contents', where 'attributes' is an
-            // object where the keys are attributes to be set on the row
+        var createRow = function(contents, buttons, attributes) {
+            // Return a row DOM object whose inner HTML is 'contents', where
+            // buttons are the DOM objects to be shown as button, and
+            // 'attributes' is an object where the keys are attributes to be set
+            // on the row
             var row = document.createElement("tr");
             var cell = document.createElement("td");
+            var buttonsCell = document.createElement("td");
+            buttonsCell.className = "buttons";
             row.appendChild(cell);
+            row.appendChild(buttonsCell);
 
             cell.innerHTML = contents;
+            // Put buttons in
+            for (var i=0; i<buttons.length; i++) {
+                buttonsCell.appendChild(buttons[i]);
+            }
 
             // Set attributes
             for (var attr in attributes) {
@@ -136,6 +135,22 @@
             }
 
             return row;
+        }
+
+        var createPlayButton = function(songs) {
+            // Create an icon for playing the songs provided. songs should be a
+            // list of objects with values for artist, album and song
+            var icon = document.createElement("span");
+            icon.innerHTML = "&#9654;";
+            icon.onclick = function() {
+                console.log("Playing the following songs:")
+                for (var i=0; i<songs.length; i++) {
+                    console.log("  * " + songs[i].song);
+                }
+            };
+            return icon;
+
+            //&#8801;
         }
 
         var library = {};
@@ -158,31 +173,46 @@
             for (var artist in library) {
                 // artists.push(artist);
 
-                var row = createRow("<span class='major'>" + artist + "</span>",
-                                    {"data-tag": artist});
+                var row = createRow(artist, [], {"data-tag": artist});
                 artistRows.push(row);
 
                 for (var album in library[artist]) {
                     // albums.push(album);
 
-                    var html = "<span class='major'>" + album + "</span>";
-                    html += "<span class='minor'>";
-                    html += "<span>&#9654;</span>";
-                    html += "<span>&#8801;</span>"
-                    html += "</span>";
-                    var row = createRow(html, {"data-tag": album});
-                    albumRows.push(row);
+                    // Create a list of songs for this album to create the play
+                    // button
+                    var albumSongs = [];
 
                     for (var i=0; i<library[artist][album].length; i++) {
                         var song = library[artist][album][i];
                         // songs.push(song);
 
-                        var row = createRow("<span class='major'>" + song + "</span>",
+                        var songObject = {"artist": artist, "album": album,
+                                          "song": song};
+                        albumSongs.push(songObject);
+
+                        var playButton = createPlayButton([songObject]);
+                        var row = createRow(song, [playButton],
                                             {"data-tag": song});
                         songRows.push(row);
                     }
+
+                    var playButton = createPlayButton(albumSongs);
+                    var row = createRow(album, [playButton],
+                                        {"data-tag": album});
+                    albumRows.push(row);
                 }
             }
+
+            // TODO: Sort rows
+
+            var artistsTitle = createRow("Artists", [], {"class": "title"});
+            var albumsTitle = createRow("Ablums", [], {"class": "title"});
+            var songsTitle = createRow("Songs", [], {"class": "title"});
+
+            artistRows = [artistsTitle].concat(artistRows);
+            albumRows = [albumsTitle].concat(albumRows);
+            songRows = [songsTitle].concat(songRows);
 
             var d = [
                 [artistRows, "artist-rows"],
