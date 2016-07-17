@@ -42,11 +42,11 @@
         }
 
         tr:hover {
-            background: #efefef;
+            background: #eef1ef;
         }
 
         tr.title {
-            background: black;
+            background: #1c2321;
             color: white;
             font-weight: bold;
         }
@@ -68,6 +68,19 @@
 
         td.buttons > span:hover {
             color: black;
+        }
+
+        .small {
+            font-size: 0.75em;
+            color: #a9b4c2;
+        }
+
+        .small a {
+            color: inherit;
+        }
+
+        .small a:hover {
+            color: #545c52;
         }
 
     </style>
@@ -164,6 +177,7 @@
             // Return a row DOM object whose inner HTML is 'contents', where
             // 'attributes' is an object where the keys are attributes to be set
             // on the row
+
             var row = document.createElement("tr");
             var cell = document.createElement("td");
             var buttonsCell = document.createElement("td");
@@ -181,8 +195,8 @@
             // Show child rows (if any exist) when the row is clicked
             row.childRows = [];
             row.onclick = function() {
-                if (this.childRows.length > 0) {
-                    filterTable(this.childRows);
+                if (row.childRows.length > 0) {
+                    filterTable(row.childRows);
 
                     document.getElementById("currently-showing-span")
                             .innerHTML = "'" + contents + "'";
@@ -200,20 +214,58 @@
             row.getElementsByClassName("buttons")[0].appendChild(button);
         }
 
+        var createLink = function(text, callback) {
+            // Return a DOM object for a link that calls the provided callback
+            // function when clicked
+
+            var link = document.createElement("a");
+            link.setAttribute("href", "#");
+            link.innerHTML = text;
+            link.onclick = function(event) {
+                callback();
+                event.stopPropagation();
+            };
+            return link;
+        }
+
+        var addRowLinks = function(links, row) {
+            var cell = row.getElementsByTagName("td")[0];
+            cell.innerHTML += "<br />";
+
+            var smallText = document.createElement("span");
+            smallText.className = "small";
+
+            for (var i=0; i<links.length; i++) {
+                smallText.appendChild(links[i]);
+
+                // If this is not the last link...
+                if (i + 1 < links.length) {
+                    // ...put a separator in
+                    smallText.appendChild(
+                        document.createTextNode(" | ")
+                    );
+                }
+            }
+
+            cell.appendChild(smallText);
+        }
+
         var createPlayButton = function(songs) {
             // Create an icon for playing the songs provided. songs should be a
             // list of objects with values for artist, album and song
             var icon = document.createElement("span");
             icon.innerHTML = "&#9654;";
-            icon.onclick = function() {
+            icon.onclick = function(event) {
                 console.log("Playing the following songs:")
                 for (var i=0; i<songs.length; i++) {
                     console.log("  * " + songs[i].song + " by " + songs[i].artist);
                 }
+
+                // Stop the event bubbling up - otherwise the row containing
+                // this button will be clicked
+                event.stopPropagation();
             };
             return icon;
-
-            //&#8801;
         }
 
         var library = {};
@@ -249,6 +301,10 @@
                     albumRow.childRows.push(albumRow);
                     albumRows.push(albumRow);
 
+                    // Add a link to artist
+                    let artistLink = createLink(artist, artistRow.onclick);
+                    addRowLinks([artistLink], albumRow);
+
                     // Add this album as a 'child row' of the artist row and
                     // vice versa
                     artistRow.childRows.push(albumRow);
@@ -270,6 +326,13 @@
                                                 {"data-tag": niceName});
                         addButtonToRow(playButton, songRow);
                         songRows.push(songRow);
+
+                        // Add a link to artist and album
+                        let links = [
+                            createLink(album, albumRow.onclick),
+                            createLink(artist, artistRow.onclick)
+                        ];
+                        addRowLinks(links, songRow);
 
                         // Add this song as a 'child row' for the album and
                         // artist
