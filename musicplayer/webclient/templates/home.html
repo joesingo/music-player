@@ -95,7 +95,7 @@
                placeholder="Search all" />
         <p id="currently-showing-p">
             Showing: <span id="currently-showing-span"></span>
-            <span id="show-all-icon" onclick="search('')">&#10060;</span>
+            <span id="show-all-icon" onclick="showAll()">&#10060;</span>
         </p>
     </div>
 
@@ -152,6 +152,12 @@
                     allRows[i].parentElement.style.display = "table-row-group";
                 }
             }
+        }
+
+        var showAll = function() {
+            // Clear the search box and show all items
+            document.getElementById("search-query").value = "";
+            search("");
         }
 
         var sendCommand = function(command) {
