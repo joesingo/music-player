@@ -109,13 +109,17 @@ class MusicPlayer(object):
         if next_song:
             self.play_song(next_song)
 
-    def add_to_queue(self, song):
-        """Add the provided song to the play queue"""
-        self.play_queue.add(song)
+    def add_to_queue(self, songs, front=False):
+        """Add the provided songs to the play queue. If front is True then add the songs to the
+        front of the queue instead of the back"""
 
-        # If no song is playing and we have just added something to the front of the queue, then
-        # play it now
-        if self.state == States.stopped and self.play_queue.get_length() == 1:
+        # Iterate through songs in reverse order so that the first item in songs will be at the
+        # front of the queue
+        for song in songs[::-1]:
+            self.play_queue.add(song, front)
+
+        # If no song is playing, then play the song at the front of the queue
+        if self.state == States.stopped:
             self.next_song()
 
     def get_info(self):

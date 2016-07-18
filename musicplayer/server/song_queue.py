@@ -21,17 +21,22 @@ class SongQueue(object):
         """Return the list of songs in the queue corresponding to the mode the queue is in"""
         return self.queues[self.mode]
 
-    def add(self, song):
+    def add(self, song, front):
         """Add a song to the back of the normal queue and in a random position in the
-        shuffled queue"""
+        shuffled queue if front is False, and add the song to the front of all
+        queues if front is True"""
         print("Adding {} to queue".format(song))
 
-        self.queues[Modes.normal].append(song)
+        if front:
+            for q in self.queues.values():
+                q.insert(0, song)
+        else:
+            self.queues[Modes.normal].append(song)
 
-        if Modes.shuffled in self.queues:
-            # For shuffled queue pick a random index and insert the new song there
-            r = random.randint(0, len(self.queue))
-            self.queues[Modes.shuffled].insert(r, song)
+            if Modes.shuffled in self.queues:
+                # For shuffled queue pick a random index and insert the new song there
+                r = random.randint(0, len(self.queue))
+                self.queues[Modes.shuffled].insert(r, song)
 
     def dequeue(self):
         """Return the song at the front of the queue, or None is queue is empty. If the queue is
