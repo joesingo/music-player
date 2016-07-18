@@ -11,17 +11,17 @@ class Modes(Enum):
 class SongQueue(object):
     """Class to represent a queue of songs to be played"""
 
-    def __init__(self, songs=[]):
+    def __init__(self, songs=None):
         self.mode = Modes.normal
         self.queues = {}  # This is to hold a serparate queue for shuffling
-        self.queues[self.mode] = songs
+        self.queues[self.mode] = songs if songs is not None else []
 
     @property
     def queue(self):
         """Return the list of songs in the queue corresponding to the mode the queue is in"""
         return self.queues[self.mode]
 
-    def add(self, song, front):
+    def add(self, song, front=False):
         """Add a song to the back of the normal queue and in a random position in the
         shuffled queue if front is False, and add the song to the front of all
         queues if front is True"""
