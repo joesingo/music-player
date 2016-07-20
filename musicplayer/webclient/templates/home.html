@@ -202,6 +202,8 @@
             row.childRows = [];
             row.onclick = function() {
                 if (row.childRows.length > 0) {
+                    // Clear the search box and filter the table
+                    document.getElementById("search-query").value = "";
                     filterTable(row.childRows);
 
                     document.getElementById("currently-showing-span")
