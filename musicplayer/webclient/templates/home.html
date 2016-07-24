@@ -2,6 +2,8 @@
 <html>
 
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
     <title>Music player</title>
     <style type="text/css">
 
@@ -41,7 +43,7 @@
             padding: 10px;
         }
 
-        tr:hover {
+        tr:hover, .popup .menu-item:hover {
             background: #eef1ef;
         }
 
@@ -81,6 +83,20 @@
 
         .small a:hover {
             color: #545c52;
+        }
+
+        .popup {
+            position: absolute;
+            border: 1px solid gray;
+            background: white;
+            padding: 0;
+        }
+
+        .popup .menu-item {
+            font-size: 0.8em;
+            padding: 7px 10px;
+            cursor: pointer;
+            border-bottom: 1px dotted gray;
         }
 
     </style>
@@ -217,8 +233,50 @@
             return row;
         }
 
+        var addRightClickMenu = function(songs, row) {
+            // Add a right click menu to the provided row to play, add to queue
+            // or play next. songs should be a list of objects with values for
+            // artist, album and song
+
+            let popup = document.createElement("div");
+            popup.className = "popup";
+
+            var items = [
+                {"name": "Play", "callback": function() {console.log("Play")}},
+                {"name": "Add to queue", "callback": function() {console.log("Add to queue")}},
+                {"name": "Play next", "callback": function() {console.log("Play next")}},
+            ];
+
+            // Add the items to the popup
+            for (var i=0; i<items.length; i++) {
+                var item = document.createElement("div");
+                item.className = "menu-item";
+                item.innerHTML = items[i].name;
+                item.onclick = items[i].callback;
+                popup.appendChild(item);
+            }
+
+            row.oncontextmenu = function(event) {
+                event.preventDefault();
+
+                removePopups();
+
+                popup.style.left = event.pageX + "px";
+                popup.style.top = event.pageY + "px";
+                document.body.appendChild(popup);
+            };
+        }
+
+        var removePopups = function() {
+            // Remove all popups on the page
+            var popups = document.getElementsByClassName("popup");
+            for (var i=0; i<popups.length; i++) {
+                popups[i].remove();
+            }
+        }
+
         var addButtonToRow = function(button, row) {
-            // Add the provided button to the row
+            // Add the provided button DOM object to the row
             row.getElementsByClassName("buttons")[0].appendChild(button);
         }
 
@@ -231,6 +289,7 @@
             link.innerHTML = text;
             link.onclick = function(event) {
                 callback();
+                removePopups();
                 event.stopPropagation();
             };
             return link;
@@ -271,18 +330,19 @@
 
                 // Stop the event bubbling up - otherwise the row containing
                 // this button will be clicked
+                removePopups();
                 event.stopPropagation();
             };
             return icon;
         }
 
+        var httpRequest;  // Used for AJAX calls
         var library = {};
         var allRows = [];
 
         var songList = JSON.parse(document.getElementById("song-list").innerHTML);
 
         if (songList["status"] === "okay") {
-            var httpRequest;  // Used for AJAX calls
 
             library = songList["message"];
 
@@ -351,6 +411,9 @@
                     // Add a play button to the album row
                     var albumPlayButton = createPlayButton(albumSongs);
                     addButtonToRow(albumPlayButton, albumRow);
+
+                    // Add a right click menu to album row
+                    addRightClickMenu(albumSongs, albumRow);
                 }
             }
 
@@ -381,6 +444,8 @@
             }
 
             allRows = artistRows.concat(albumRows).concat(songRows);
+
+            document.body.addEventListener("click", removePopups);
         }
         else {
             // TODO: Do proper error handling
