@@ -1,6 +1,10 @@
 Dependencies:
-* pygame >= 1.9.2 (not in ubuntu repos - must compile)
-* libsdl-mixer1.2-dev
+* Server:
+    * python3
+    * pygame >= 1.9.2 (python3-pygame)
+    * libsdl-mixer1.2-dev (?)
+* Web client:
+    * flask (pip3 install flask)
 
 For easy copy-pasting:
     '{"command": "play", "song": ""}'
