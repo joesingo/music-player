@@ -113,9 +113,10 @@ class MusicPlayer(object):
         """Add the provided songs to the play queue. If front is True then add the songs to the
         front of the queue instead of the back"""
 
-        # Iterate through songs in reverse order so that the first item in songs will be at the
-        # front of the queue
-        for song in songs[::-1]:
+        # If adding to the front of the queue, iterate through songs in reverse order so that the
+        # first item in songs will be at the front of the queue
+        song_list = songs[::-1] if front else songs
+        for song in song_list:
             self.play_queue.add(song, front)
 
         # If no song is playing, then play the song at the front of the queue

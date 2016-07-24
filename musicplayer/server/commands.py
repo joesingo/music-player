@@ -54,27 +54,25 @@ def list_command(data, player):
     name, album and artist"""
     return player.list_songs()
 
-def add_to_queue_wrapper(front):
-    """A wrapper function to create the command to add songs to the queue. If front is True
-    then add songs to the front of the queue"""
 
-    @requires("songs")
-    def command(data, player):
-        """Add songs to the play queue"""
-        if type(data["songs"]) != list:
-            raise InvalidCommandException("No songs specified")
+@requires("songs")
+def add_to_queue_command(data, player):
+    """Add songs to the play queue"""
+    if type(data["songs"]) != list:
+        raise InvalidCommandException("No songs specified")
 
-        songs = []
+    songs = []
 
-        for s in data["songs"]:
-            # Check that each item in data["songs"] actual describes a song
-            checker = requires(*Song.REQUIRED_FIELDS)
-            checker.check_fields(s)
-            songs.append(Song(s))
+    for s in data["songs"]:
+        # Check that each item in data["songs"] actual describes a song
+        checker = requires(*Song.REQUIRED_FIELDS)
+        checker.check_fields(s)
+        songs.append(Song(s))
 
-        player.add_to_queue(songs, front)
+    # Add the songs to the front of the queue if 'front' is True in the data
+    front = True if "front" in data and data["front"] else False
 
-    return command
+    player.add_to_queue(songs, front)
 
 
 def next_song_command(data, player):
@@ -98,8 +96,7 @@ COMMANDS = {
     "toggle-shuffle": toggle_shuffle_command,
     "stop": stop_command,
     "list": list_command,
-    "add-to-queue": add_to_queue_wrapper(False),
-    "play-next": add_to_queue_wrapper(True),
+    "add-to-queue": add_to_queue_command,
     "next": next_song_command,
     "list-queue": list_queue_command,
     "now-playing": now_playing_command
