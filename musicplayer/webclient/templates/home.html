@@ -99,6 +99,32 @@
             border-bottom: 1px dotted gray;
         }
 
+        #message {
+            position: fixed;
+            width: 100%;
+            left: 0;
+            bottom: 0;
+            text-align: center;
+            border: 2px solid black;
+            padding: 10px;
+            display: none;
+        }
+
+        #message.loading {
+            background: #F5ECCD;
+            color: black;
+        }
+
+        #message.loading img {
+            width: 20px;
+            height: 20px;
+        }
+
+        #message.error {
+            background: #CC0025;
+            color: white;
+        }
+
     </style>
     <script id="song-list" type="application/json">
         {{ list|safe }}
@@ -120,6 +146,8 @@
         <tbody id="album-rows"></tbody>
         <tbody id="song-rows"></tbody>
     </table>
+
+    <div id="message" class="loading">Hello there</div>
 
     <script type="text/javascript">
 
@@ -180,9 +208,10 @@
             // Convert the command object to a JSON string and send to the server
             httpRequest = new XMLHttpRequest();
             httpRequest.onreadystatechange = handleAjaxReply;
-            httpRequest.open("POST", "/send")
-            httpRequest.setRequestHeader("Content-type", "application/json")
-            httpRequest.send(JSON.stringify(command))
+            httpRequest.open("POST", "/send");
+            httpRequest.setRequestHeader("Content-type", "application/json");
+            httpRequest.send(JSON.stringify(command));
+            showLoadingMessage();
         }
 
         var handleAjaxReply = function() {
@@ -191,8 +220,45 @@
                 if (httpRequest.status === 200) {
                     reply = JSON.parse(httpRequest.responseText);
                     console.log(reply);
+
+                    switch (reply.status) {
+                        case "okay":
+                            hideMessage();
+                            break;
+                        case "error":
+                            showErrorMessage("Error: " + reply.message);
+                            break;
+                    }
+                }
+                else {
+                    // If response staus was not 200 then something has gone
+                    // wrong
+                    showErrorMessage("An error ocurred");
                 }
             }
+        }
+
+        var showLoadingMessage = function() {
+            // Show a message at the bottom of the screen to signify that
+            // something is loading
+            var message = document.getElementById("message");
+            message.className = "loading";
+            message.innerHTML = "Loading...";
+            message.innerHTML += "<img src='{{ url_for('static', filename='loading.gif') }}' />"
+            message.style.display = "block";
+        }
+
+        var showErrorMessage = function(errorMessage) {
+            var message = document.getElementById("message");
+            message.className = "error";
+            message.innerHTML = errorMessage;
+            message.style.display = "block";
+        }
+
+        var hideMessage = function() {
+            // Hide the message at the bottom of the screen
+            var message = document.getElementById("message");
+            message.style.display = "none";
         }
 
         var nextSong = function() {
