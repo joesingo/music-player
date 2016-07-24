@@ -195,6 +195,49 @@
             }
         }
 
+        var nextSong = function() {
+            sendCommand({"command": "next"});
+        }
+
+        var printSongs = function(songs) {
+            // For debugging
+            for (var i=0; i<songs.length; i++) {
+                console.log("  * " + songs[i].song + " by " + songs[i].artist);
+            }
+        }
+
+        var addToQueue = function(songs, front) {
+            // Send an AJAX request to add the provided songs to the queue. If
+            // front is provided and is true, then add the songs to the front
+            // of the queue
+
+            console.log("Adding the following songs to queue:");
+            printSongs(songs);
+
+            var command = {
+                "command": "add-to-queue",
+                "songs": songs
+            };
+
+            if (typeof(front) !== undefined) {
+                command["front"] = front;
+            };
+
+            sendCommand(command);
+        }
+
+        var playSongs = function(songs) {
+            // Send an AJAX request to the server to play the provided songs
+
+            console.log("Playing the following songs:")
+            printSongs(songs);
+
+            // Playing songs is the same as adding them to the front of the
+            // queue and then skipping to the next song
+            addToQueue(songs, true);
+            nextSong();
+        }
+
         var createRow = function(contents, attributes) {
             // Return a row DOM object whose inner HTML is 'contents', where
             // 'attributes' is an object where the keys are attributes to be set
@@ -242,9 +285,24 @@
             popup.className = "popup";
 
             var items = [
-                {"name": "Play", "callback": function() {console.log("Play")}},
-                {"name": "Add to queue", "callback": function() {console.log("Add to queue")}},
-                {"name": "Play next", "callback": function() {console.log("Play next")}},
+                {
+                    "name": "Play",
+                    "callback": function() {
+                        playSongs(songs);
+                    }
+                },
+                {
+                    "name": "Add to queue",
+                    "callback": function() {
+                        addToQueue(songs);
+                    }
+                },
+                {
+                    "name": "Play next",
+                    "callback": function() {
+                        addToQueue(songs, true);
+                    }
+                },
             ];
 
             // Add the items to the popup
@@ -323,10 +381,7 @@
             var icon = document.createElement("span");
             icon.innerHTML = "&#9654;";
             icon.onclick = function(event) {
-                console.log("Playing the following songs:")
-                for (var i=0; i<songs.length; i++) {
-                    console.log("  * " + songs[i].song + " by " + songs[i].artist);
-                }
+                playSongs(songs);
 
                 // Stop the event bubbling up - otherwise the row containing
                 // this button will be clicked
@@ -393,6 +448,7 @@
                         let songRow = createRow(niceName,
                                                 {"data-tag": niceName});
                         addButtonToRow(playButton, songRow);
+                        addRightClickMenu([songObject], songRow);
                         songRows.push(songRow);
 
                         // Add a link to artist and album

@@ -119,10 +119,6 @@ class MusicPlayer(object):
         for song in song_list:
             self.play_queue.add(song, front)
 
-        # If no song is playing, then play the song at the front of the queue
-        if self.state == States.stopped:
-            self.next_song()
-
     def get_info(self):
         """Return the current state, and if a song is playing return its info and elapsed time"""
         info = {
