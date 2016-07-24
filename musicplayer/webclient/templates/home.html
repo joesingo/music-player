@@ -147,7 +147,7 @@
         <tbody id="song-rows"></tbody>
     </table>
 
-    <div id="message" class="loading">Hello there</div>
+    <div id="message"></div>
 
     <script type="text/javascript">
 
@@ -263,6 +263,10 @@
 
         var nextSong = function() {
             sendCommand({"command": "next"});
+        }
+
+        var togglePause = function() {
+            sendCommand({"command": "toggle-pause"});
         }
 
         var printSongs = function(songs) {
@@ -448,10 +452,10 @@
             icon.innerHTML = "&#9654;";
             icon.onclick = function(event) {
                 playSongs(songs);
+                removePopups();
 
                 // Stop the event bubbling up - otherwise the row containing
                 // this button will be clicked
-                removePopups();
                 event.stopPropagation();
             };
             return icon;
@@ -567,7 +571,19 @@
 
             allRows = artistRows.concat(albumRows).concat(songRows);
 
+            // Remove popups on click
             document.body.addEventListener("click", removePopups);
+
+            // Handle keyboard shortcuts
+            document.body.addEventListener("keypress", function(event) {
+                switch (event.keyCode) {
+                    // Toggle pause with space
+                    case 32:
+                        event.preventDefault();
+                        togglePause();
+                        break;
+                }
+            });
         }
         else {
             // TODO: Do proper error handling
