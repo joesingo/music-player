@@ -126,6 +126,10 @@
             color: white;
         }
 
+        #no-results-p {
+            display: none;
+        }
+
     </style>
     <script id="song-list" type="application/json">
         {{ list|safe }}
@@ -140,6 +144,8 @@
             Showing: <span id="currently-showing-span"></span>
             <span id="show-all-icon" onclick="showAll()">&#10060;</span>
         </p>
+
+        <p id="no-results-p">No results for '<span></span>'</p>
     </div>
 
     <table id="main-table">
@@ -156,8 +162,9 @@
             // Show all rows whose 'tag' starts with the provided query,
             // and hide all others
 
-            // Hide 'Showing: ...'
+            // Hide 'Showing: ...' and 'No results found...'
             document.getElementById("currently-showing-p").style.display = "none";
+            document.getElementById("no-results-p").style.display = "none";
 
             var relevantRows = [];
             for (var i=0; i<allRows.length; i++) {
@@ -174,6 +181,13 @@
 
             // Show only the relevant rows
             filterTable(relevantRows);
+
+            // Show a message if no results were found
+            if (relevantRows.length === 0) {
+                var p = document.getElementById("no-results-p");
+                p.getElementsByTagName("span")[0].innerHTML = query;
+                p.style.display = "block";
+            }
         }
 
         var filterTable = function(rows) {
