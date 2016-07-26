@@ -126,6 +126,46 @@
             color: white;
         }
 
+        #controls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            text-align: center;
+            width: 100%;
+            background: #1c2321;
+            height: 50px;
+            display: table;
+        }
+
+        #controls > div {
+            display: table-cell;
+            vertical-align: middle;
+        }
+
+        #controls button {
+            background: #eef1ef;
+            color: gray;
+            border: none;
+            font-size: 1.2em;
+            padding: 7px 13px;
+            outline: none;
+            cursor: pointer;
+            border-radius: 10px;
+        }
+
+        #controls button:hover {
+            color: black;
+        }
+
+        #controls button:active {
+            border: 2px solid gray;
+        }
+
+        #container {
+            /* This needs to be greater than the total height of #controls */
+            margin-top: 70px;
+        }
+
         #no-results-p {
             display: none;
         }
@@ -137,22 +177,33 @@
 </head>
 
 <body>
-    <div id="search-area">
-        <input type="text" id="search-query" onkeyup="search(this.value)"
-               placeholder="Search all" />
-        <p id="currently-showing-p">
-            Showing: <span id="currently-showing-span"></span>
-            <span id="show-all-icon" onclick="showAll()">&#10060;</span>
-        </p>
-
-        <p id="no-results-p">No results for '<span></span>'</p>
+    <div id="controls">
+        <div>
+            <button id="play-pause-button" onclick="togglePause()"
+                    data-state="play">
+                &#9654;
+            </button>
+        </div>
     </div>
 
-    <table id="main-table">
-        <tbody id="artist-rows"></tbody>
-        <tbody id="album-rows"></tbody>
-        <tbody id="song-rows"></tbody>
-    </table>
+    <div id="container">
+        <div id="search-area">
+            <input type="text" id="search-query" onkeyup="search(this.value)"
+                   placeholder="Search all" />
+            <p id="currently-showing-p">
+                Showing: <span id="currently-showing-span"></span>
+                <span id="show-all-icon" onclick="showAll()">&#10060;</span>
+            </p>
+
+            <p id="no-results-p">No results for '<span></span>'</p>
+        </div>
+
+        <table id="main-table">
+            <tbody id="artist-rows"></tbody>
+            <tbody id="album-rows"></tbody>
+            <tbody id="song-rows"></tbody>
+        </table>
+    </div>
 
     <div id="message"></div>
 
@@ -282,6 +333,17 @@
 
         var togglePause = function() {
             sendCommand({"command": "toggle-pause"});
+
+            // Toggle the symbol in the button
+            var symbols = {
+                "play": "&#9654;",
+                "pause": "&#9208;"
+            }
+            var button = document.getElementById("play-pause-button");
+            var state = (button.getAttribute("data-state") == "play") ?
+                        "pause" : "play";
+            button.setAttribute("data-state", state);
+            button.innerHTML = symbols[state];
         }
 
         var printSongs = function(songs) {
